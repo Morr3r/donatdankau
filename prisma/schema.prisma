@@ -1,0 +1,357 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ItemType {
+  RAW_MATERIAL
+  FINISHED_PRODUCT
+}
+
+enum UserRole {
+  ADMIN
+  WAREHOUSE_STAFF
+  OUTLET_STAFF
+  SUPERVISOR
+  OWNER_MANAGER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum StockOpnameStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum StockMovementType {
+  STOCK_IN
+  STOCK_OUT
+  TRANSFER_OUT
+  TRANSFER_IN
+  ADJUSTMENT_PLUS
+  ADJUSTMENT_MINUS
+  OPNAME_ADJUSTMENT
+}
+
+enum StockMovementCategory {
+  PURCHASE
+  RETURN
+  PRODUCTION
+  DAMAGED
+  EXPIRED
+  TRANSFER
+  ADJUSTMENT
+  OPNAME
+  OTHER
+}
+
+enum TransferStatus {
+  DRAFT
+  IN_TRANSIT
+  RECEIVED
+  CANCELLED
+}
+
+enum ValidationStatus {
+  PENDING
+  VALIDATED
+  REJECTED
+}
+
+model Unit {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items         Item[]
+  stockMovement StockMovement[]
+}
+
+model Supplier {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  contact         String?
+  address         String?
+  suppliedProduct String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  items          Item[]
+  stockMovements StockMovement[]
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  type      String
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users                AppUser[]
+  stockLevels          StockLevel[]
+  stockLots            StockLot[]
+  stockOpnames         StockOpname[]
+  stockMovementsFrom   StockMovement[] @relation("MovementSourceLocation")
+  stockMovementsTo     StockMovement[] @relation("MovementDestinationLocation")
+  sourceTransfers      StockTransfer[] @relation("TransferSourceLocation")
+  destinationTransfers StockTransfer[] @relation("TransferDestinationLocation")
+}
+
+model AppUser {
+  id           String     @id @default(uuid())
+  name         String
+  username     String?    @unique
+  email        String     @unique
+  passwordHash String?
+  role         UserRole
+  status       UserStatus @default(ACTIVE)
+  locationId   String?
+  permissions  Json?
+  lastLoginAt  DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  location                Location?       @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  stockOpnamesCreated     StockOpname[]   @relation("OpnameOfficer")
+  stockOpnamesApproved    StockOpname[]   @relation("OpnameApprover")
+  stockMovementsInput     StockMovement[] @relation("MovementInputBy")
+  stockMovementsValidated StockMovement[] @relation("MovementValidatedBy")
+  transfersCreated        StockTransfer[] @relation("TransferCreatedBy")
+  transfersReceived       StockTransfer[] @relation("TransferReceivedBy")
+  activityLogs            ActivityLog[]
+  authSessions            AuthSession[]
+}
+
+model Item {
+  id            String   @id @default(uuid())
+  code          String   @unique
+  name          String
+  type          ItemType
+  category      String
+  unitId        String
+  standardCost  Decimal  @default(0) @db.Decimal(14, 2)
+  minStock      Decimal  @default(0) @db.Decimal(14, 3)
+  shelfLifeDays Int?
+  supplierId    String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  unit          Unit                @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  supplier      Supplier?           @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  stockLevels   StockLevel[]
+  stockLots     StockLot[]
+  opnameItems   StockOpnameItem[]
+  stockMovement StockMovement[]
+  transferItems StockTransferItem[]
+
+  @@index([type])
+  @@index([category])
+}
+
+model StockLevel {
+  id           String    @id @default(uuid())
+  itemId       String
+  locationId   String
+  quantity     Decimal   @default(0) @db.Decimal(14, 3)
+  lastOpnameAt DateTime?
+  updatedAt    DateTime  @updatedAt
+
+  item     Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, locationId])
+  @@index([locationId])
+}
+
+model StockLot {
+  id         String    @id @default(uuid())
+  batchCode  String
+  itemId     String
+  locationId String
+  receivedAt DateTime  @default(now())
+  expiryDate DateTime?
+  quantity   Decimal   @db.Decimal(14, 3)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  item     Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@index([expiryDate])
+  @@index([locationId, itemId])
+}
+
+model StockOpname {
+  id             String            @id @default(uuid())
+  documentNumber String            @unique
+  opnameDate     DateTime
+  locationId     String
+  officerId      String
+  status         StockOpnameStatus @default(DRAFT)
+  notes          String?
+  submittedAt    DateTime?
+  approvedAt     DateTime?
+  approvedById   String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  location   Location          @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  officer    AppUser           @relation("OpnameOfficer", fields: [officerId], references: [id], onDelete: Restrict)
+  approvedBy AppUser?          @relation("OpnameApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  items      StockOpnameItem[]
+  movements  StockMovement[]
+
+  @@index([opnameDate])
+  @@index([status])
+  @@index([locationId])
+}
+
+model StockOpnameItem {
+  id            String   @id @default(uuid())
+  stockOpnameId String
+  itemId        String
+  systemStock   Decimal  @db.Decimal(14, 3)
+  physicalStock Decimal  @db.Decimal(14, 3)
+  difference    Decimal  @db.Decimal(14, 3)
+  note          String?
+  createdAt     DateTime @default(now())
+
+  stockOpname StockOpname @relation(fields: [stockOpnameId], references: [id], onDelete: Cascade)
+  item        Item        @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@unique([stockOpnameId, itemId])
+  @@index([difference])
+}
+
+model StockTransfer {
+  id                    String         @id @default(uuid())
+  transferNumber        String         @unique
+  transferDate          DateTime       @default(now())
+  sourceLocationId      String
+  destinationLocationId String
+  status                TransferStatus @default(DRAFT)
+  createdById           String
+  receivedById          String?
+  note                  String?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  sourceLocation      Location            @relation("TransferSourceLocation", fields: [sourceLocationId], references: [id], onDelete: Restrict)
+  destinationLocation Location            @relation("TransferDestinationLocation", fields: [destinationLocationId], references: [id], onDelete: Restrict)
+  createdBy           AppUser             @relation("TransferCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  receivedBy          AppUser?            @relation("TransferReceivedBy", fields: [receivedById], references: [id], onDelete: SetNull)
+  items               StockTransferItem[]
+  movements           StockMovement[]
+
+  @@index([status])
+  @@index([transferDate])
+}
+
+model StockTransferItem {
+  id          String   @id @default(uuid())
+  transferId  String
+  itemId      String
+  qtySent     Decimal  @db.Decimal(14, 3)
+  qtyReceived Decimal? @db.Decimal(14, 3)
+  note        String?
+  createdAt   DateTime @default(now())
+
+  transfer StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  item     Item          @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@unique([transferId, itemId])
+}
+
+model StockMovement {
+  id                    String                @id @default(uuid())
+  movementDate          DateTime              @default(now())
+  movementType          StockMovementType
+  category              StockMovementCategory @default(OTHER)
+  transactionNumber     String
+  referenceDocument     String?
+  itemId                String
+  quantity              Decimal               @db.Decimal(14, 3)
+  unitId                String
+  sourceLocationId      String?
+  destinationLocationId String?
+  sourceSupplierId      String?
+  reason                String?
+  inputById             String
+  validationStatus      ValidationStatus      @default(PENDING)
+  validatedById         String?
+  validatedAt           DateTime?
+  stockOpnameId         String?
+  transferId            String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  item                Item           @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  unit                Unit           @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  sourceLocation      Location?      @relation("MovementSourceLocation", fields: [sourceLocationId], references: [id], onDelete: SetNull)
+  destinationLocation Location?      @relation("MovementDestinationLocation", fields: [destinationLocationId], references: [id], onDelete: SetNull)
+  sourceSupplier      Supplier?      @relation(fields: [sourceSupplierId], references: [id], onDelete: SetNull)
+  inputBy             AppUser        @relation("MovementInputBy", fields: [inputById], references: [id], onDelete: Restrict)
+  validatedBy         AppUser?       @relation("MovementValidatedBy", fields: [validatedById], references: [id], onDelete: SetNull)
+  stockOpname         StockOpname?   @relation(fields: [stockOpnameId], references: [id], onDelete: SetNull)
+  transfer            StockTransfer? @relation(fields: [transferId], references: [id], onDelete: SetNull)
+
+  @@index([movementDate])
+  @@index([movementType])
+  @@index([category])
+  @@index([transactionNumber])
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  module    String
+  action    String
+  entity    String?
+  entityId  String?
+  details   String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user AppUser? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([module])
+  @@index([userId])
+}
+
+model Counter {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     Int      @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+model AuthSession {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}

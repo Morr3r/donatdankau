@@ -1,26 +1,150 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-sans: var(--font-plus-jakarta);
+  --font-display: var(--font-space-grotesk);
+  --dd-bg-start: #fff7eb;
+  --dd-bg-mid: #f2ddba;
+  --dd-bg-end: #e8bc7e;
+  --dd-surface: #fff9ef;
+  --dd-surface-soft: #fffdf8;
+  --dd-surface-strong: #fff2df;
+  --dd-border: #e6c494;
+  --dd-border-soft: #f0dbba;
+  --dd-cocoa: #3d2517;
+  --dd-espresso: #2e1a12;
+  --dd-muted: #7a5942;
+  --dd-accent: #e6992f;
+  --dd-accent-strong: #d78520;
+  --dd-frosting: #e58fb4;
+  --dd-ring: #f0c57f;
+  --dd-shadow-soft: 0 12px 26px -20px rgba(67, 37, 19, 0.42);
+  --dd-shadow-lg: 0 30px 58px -36px rgba(64, 35, 19, 0.5);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-plus-jakarta);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), sans-serif;
+  letter-spacing: 0.5px;
+  color: var(--dd-cocoa);
+  background:
+    radial-gradient(circle at 8% 10%, rgba(229, 143, 180, 0.28), transparent 28%),
+    radial-gradient(circle at 92% 10%, rgba(234, 173, 82, 0.24), transparent 26%),
+    radial-gradient(circle at 84% 84%, rgba(206, 132, 47, 0.2), transparent 30%),
+    linear-gradient(180deg, var(--dd-bg-start) 0%, var(--dd-bg-mid) 45%, var(--dd-bg-end) 100%);
+  position: relative;
+  overflow-x: hidden;
 }
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display), sans-serif;
+  letter-spacing: 0.5px;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+span,
+label,
+a,
+button,
+input,
+select,
+textarea,
+li,
+th,
+td {
+  letter-spacing: 0.5px;
+}
+
+input,
+select,
+button,
+textarea {
+  font: inherit;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+  background-size: 74px 74px;
+  mask-image: radial-gradient(circle at center, black 38%, transparent 88%);
+  opacity: 0.24;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.26) 0%, transparent 58%),
+    linear-gradient(180deg, rgba(255, 248, 237, 0.12) 0%, rgba(65, 38, 21, 0.05) 100%);
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+
+::selection {
+  background: rgba(229, 143, 180, 0.32);
+  color: var(--dd-espresso);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+table tbody tr {
+  transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+table tbody tr:hover td {
+  background: rgba(255, 248, 237, 0.92);
+}
+
+table tbody tr:hover {
+  transform: translateY(-1px);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #e7b05b, #d88a4f);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 251, 243, 0.55);
+}
+
