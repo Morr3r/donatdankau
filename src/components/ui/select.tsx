@@ -4,6 +4,7 @@ import { Check, ChevronDown } from "lucide-react";
 import {
   Children,
   isValidElement,
+  useCallback,
   useEffect,
   useId,
   useMemo,
@@ -15,6 +16,7 @@ import {
   type ReactElement,
   type SelectHTMLAttributes,
 } from "react";
+import { createPortal } from "react-dom";
 
 import { cn } from "@/lib/utils";
 
@@ -104,6 +106,7 @@ export function Select({
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const nativeSelectRef = useRef<HTMLSelectElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const listboxId = useId();
 
   const options = useMemo(() => parseOptions(children), [children]);
@@ -116,6 +119,7 @@ export function Select({
   );
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties | null>(null);
 
   const isControlled = value !== undefined;
   const selectedValue = isControlled ? normalizeSelectValue(value) : uncontrolledValue;
@@ -127,6 +131,51 @@ export function Select({
   const preferredIndex =
     selectedIndex >= 0 && !options[selectedIndex]?.disabled ? selectedIndex : findEnabledIndex(options, -1, 1);
 
+  const syncDropdownPosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    const viewportPadding = 12;
+    const gap = 8;
+    const defaultMaxHeight = 288;
+    const minVisibleHeight = 160;
+
+    const spaceBelow = viewportHeight - rect.bottom - viewportPadding;
+    const spaceAbove = rect.top - viewportPadding;
+    const placeAbove = spaceBelow < minVisibleHeight && spaceAbove > spaceBelow;
+    const maxHeight = Math.max(
+      120,
+      Math.min(defaultMaxHeight, placeAbove ? spaceAbove - gap : spaceBelow - gap),
+    );
+
+    const left = Math.max(viewportPadding, rect.left);
+    const width = Math.min(rect.width, viewportWidth - left - viewportPadding);
+
+    if (placeAbove) {
+      const bottom = Math.max(viewportPadding, viewportHeight - rect.top + gap);
+      setDropdownStyle({
+        position: "fixed",
+        left,
+        bottom,
+        width,
+        maxHeight,
+      });
+      return;
+    }
+
+    const top = Math.max(viewportPadding, rect.bottom + gap);
+    setDropdownStyle({
+      position: "fixed",
+      left,
+      top,
+      width,
+      maxHeight,
+    });
+  }, []);
+
   useEffect(() => {
     if (!autoFocus) return;
     triggerRef.current?.focus();
@@ -135,10 +184,16 @@ export function Select({
   useEffect(() => {
     if (!open) return;
 
-    const closeDropdown = () => setOpen(false);
+    syncDropdownPosition();
+
+    const closeDropdown = () => {
+      setDropdownStyle(null);
+      setOpen(false);
+    };
 
     const handlePointerDown = (event: MouseEvent | TouchEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (!rootRef.current?.contains(target) && !menuRef.current?.contains(target)) {
         closeDropdown();
       }
     };
@@ -150,7 +205,7 @@ export function Select({
       }
     };
 
-    const handleViewportChange = () => closeDropdown();
+    const handleViewportChange = () => syncDropdownPosition();
 
     document.addEventListener("mousedown", handlePointerDown);
     document.addEventListener("touchstart", handlePointerDown);
@@ -165,7 +220,7 @@ export function Select({
       window.removeEventListener("resize", handleViewportChange);
       window.removeEventListener("scroll", handleViewportChange, true);
     };
-  }, [open]);
+  }, [open, syncDropdownPosition]);
 
   const syncValueAndEmitChange = (nextValue: string) => {
     const native = nativeSelectRef.current;
@@ -183,6 +238,7 @@ export function Select({
     }
 
     syncValueAndEmitChange(option.value);
+    setDropdownStyle(null);
     setOpen(false);
     triggerRef.current?.focus();
   };
@@ -192,6 +248,8 @@ export function Select({
       const next = !previous;
       if (next) {
         setActiveIndex(preferredIndex);
+      } else {
+        setDropdownStyle(null);
       }
       return next;
     });
@@ -284,48 +342,53 @@ export function Select({
         )}
       />
 
-      {open ? (
-        <div
-          id={listboxId}
-          role="listbox"
-          aria-labelledby={id}
-          className="absolute z-[95] mt-2 max-h-72 w-full overflow-y-auto rounded-2xl border border-[#e4be8e] bg-[linear-gradient(180deg,#fffaf2_0%,#fff0dc_100%)] p-1.5 shadow-[0_24px_54px_-30px_rgba(67,39,21,0.64)]"
-        >
-          {options.length === 0 ? (
-            <div className="px-3 py-2 text-sm text-[#8d6b4d]">Tidak ada opsi</div>
-          ) : (
-            options.map((option, index) => {
-              const isSelected = option.value === selectedValue;
-              const isActive = index === activeIndex;
+      {open && dropdownStyle && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              ref={menuRef}
+              id={listboxId}
+              role="listbox"
+              aria-labelledby={id}
+              style={dropdownStyle}
+              className="z-[200] overflow-y-auto rounded-2xl border border-[#e4be8e] bg-[linear-gradient(180deg,#fffaf2_0%,#fff0dc_100%)] p-1.5 shadow-[0_24px_54px_-30px_rgba(67,39,21,0.64)]"
+            >
+              {options.length === 0 ? (
+                <div className="px-3 py-2 text-sm text-[#8d6b4d]">Tidak ada opsi</div>
+              ) : (
+                options.map((option, index) => {
+                  const isSelected = option.value === selectedValue;
+                  const isActive = index === activeIndex;
 
-              return (
-                <button
-                  key={`${option.value}-${index}`}
-                  type="button"
-                  role="option"
-                  aria-selected={isSelected}
-                  disabled={option.disabled}
-                  onMouseDown={(event) => event.preventDefault()}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  onClick={() => selectOption(option)}
-                  className={cn(
-                    "flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition duration-150",
-                    option.disabled
-                      ? "cursor-not-allowed text-[#b89476]"
-                      : "text-[#4b2f1f]",
-                    !option.disabled && "hover:bg-[#ffe9ca]",
-                    isActive && !option.disabled && "bg-[#ffe6c2]",
-                    isSelected && "bg-[linear-gradient(120deg,#efb14e_0%,#e7997b_100%)] font-semibold text-[#3a2217] shadow-[0_12px_20px_-14px_rgba(168,99,36,0.66)]",
-                  )}
-                >
-                  <span className="flex-1 truncate">{option.label}</span>
-                  {isSelected ? <Check size={15} aria-hidden="true" /> : null}
-                </button>
-              );
-            })
-          )}
-        </div>
-      ) : null}
+                  return (
+                    <button
+                      key={`${option.value}-${index}`}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      disabled={option.disabled}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onMouseEnter={() => setActiveIndex(index)}
+                      onClick={() => selectOption(option)}
+                      className={cn(
+                        "flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition duration-150",
+                        option.disabled
+                          ? "cursor-not-allowed text-[#b89476]"
+                          : "text-[#4b2f1f]",
+                        !option.disabled && "hover:bg-[#ffe9ca]",
+                        isActive && !option.disabled && "bg-[#ffe6c2]",
+                        isSelected && "bg-[linear-gradient(120deg,#efb14e_0%,#e7997b_100%)] font-semibold text-[#3a2217] shadow-[0_12px_20px_-14px_rgba(168,99,36,0.66)]",
+                      )}
+                    >
+                      <span className="flex-1 truncate">{option.label}</span>
+                      {isSelected ? <Check size={15} aria-hidden="true" /> : null}
+                    </button>
+                  );
+                })
+              )}
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
