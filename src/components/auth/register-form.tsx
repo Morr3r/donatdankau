@@ -174,7 +174,7 @@ export function RegisterForm({ action }: RegisterFormProps) {
             value={values.username}
             onChange={(event) => handleFieldChange("username", event.target.value)}
             onBlur={() => handleFieldBlur("username")}
-            placeholder="admin123"
+            placeholder="Masukkan Username Baru"
             autoComplete="username"
             aria-invalid={Boolean(touched.username && errors.username)}
             className="h-12 w-full rounded-xl border border-[#d8b88b] bg-[#fff9f0] px-4 text-sm text-[#472b1c] shadow-[0_6px_14px_-12px_rgba(71,43,28,0.5)] outline-none transition placeholder:text-[#9e7757] focus:border-[#d89f48] focus:bg-white focus:ring-2 focus:ring-[#f3d39c]"
