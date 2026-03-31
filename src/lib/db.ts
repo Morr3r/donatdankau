@@ -106,6 +106,8 @@ export const prisma =
     });
   })();
 
+export type TxClient = Pick<typeof prisma, "activityLog" | "counter" | "location" | "stockLevel" | "unit">;
+
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
   globalForPrisma.prismaConnectionString = resolvedConnectionString;

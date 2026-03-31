@@ -1,6 +1,7 @@
 ﻿"use server";
 
-import { ItemType, Prisma, StockMovementCategory, StockMovementType, StockOpnameStatus, ValidationStatus } from "@prisma/client";
+import { ItemType, StockMovementCategory, StockMovementType, StockOpnameStatus, ValidationStatus } from "@prisma/client";
+import { PrismaClientInitializationError, PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -25,7 +26,7 @@ function isRedirectError(error: unknown) {
 }
 
 function getActionErrorMessage(error: unknown, fallback: string) {
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+  if (error instanceof PrismaClientKnownRequestError) {
     if (["P1000", "P1001", "P1010"].includes(error.code)) {
       return "Koneksi database sedang bermasalah. Coba lagi beberapa detik lagi.";
     }
@@ -35,7 +36,7 @@ function getActionErrorMessage(error: unknown, fallback: string) {
     }
   }
 
-  if (error instanceof Prisma.PrismaClientInitializationError) {
+  if (error instanceof PrismaClientInitializationError) {
     return "Koneksi database gagal diinisialisasi. Cek DATABASE_URL dan restart server.";
   }
 

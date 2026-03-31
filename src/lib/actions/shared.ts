@@ -1,8 +1,7 @@
-
-import { Prisma } from "@prisma/client";
-
-import { prisma } from "@/lib/db";
+import { prisma, type TxClient } from "@/lib/db";
 import { getOrCreateDefaultLocation } from "@/lib/location";
+
+type JsonPayload = string | number | boolean | Array<JsonPayload | null> | { [key: string]: JsonPayload | null };
 
 export function parseNumber(value: FormDataEntryValue | null, fallback = 0) {
   if (value === null || value === "") return fallback;
@@ -37,7 +36,7 @@ export async function getSystemUserId() {
   return user.id;
 }
 
-export async function getNextDocumentNumber(tx: Prisma.TransactionClient, key: string, prefix: string) {
+export async function getNextDocumentNumber(tx: TxClient, key: string, prefix: string) {
   const counter = await tx.counter.upsert({
     where: { key },
     update: { value: { increment: 1 } },
@@ -49,7 +48,7 @@ export async function getNextDocumentNumber(tx: Prisma.TransactionClient, key: s
 }
 
 export async function logActivity(
-  tx: Prisma.TransactionClient,
+  tx: TxClient,
   payload: {
     userId?: string | null;
     module: string;
@@ -57,7 +56,7 @@ export async function logActivity(
     entity?: string;
     entityId?: string;
     details?: string;
-    metadata?: Prisma.InputJsonValue;
+    metadata?: JsonPayload;
   },
 ) {
   await tx.activityLog.create({
@@ -74,7 +73,7 @@ export async function logActivity(
 }
 
 export async function adjustStockLevel(
-  tx: Prisma.TransactionClient,
+  tx: TxClient,
   payload: {
     itemId: string;
     locationId: string;

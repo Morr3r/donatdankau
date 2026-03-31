@@ -1,7 +1,7 @@
 ﻿"use server";
 
-import { Prisma } from "@prisma/client";
 import { hash, compare } from "bcryptjs";
+import { PrismaClientInitializationError, PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -28,7 +28,7 @@ function isRedirectError(error: unknown) {
 }
 
 function getAuthActionErrorMessage(error: unknown, fallback: string) {
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+  if (error instanceof PrismaClientKnownRequestError) {
     if (error.code === "P2002") {
       const target = Array.isArray(error.meta?.target) ? error.meta.target.join(",") : String(error.meta?.target ?? "");
       if (target.includes("username") || target.includes("email")) {
@@ -43,7 +43,7 @@ function getAuthActionErrorMessage(error: unknown, fallback: string) {
     }
   }
 
-  if (error instanceof Prisma.PrismaClientInitializationError) {
+  if (error instanceof PrismaClientInitializationError) {
     return "Koneksi database gagal diinisialisasi. Periksa DATABASE_URL project lalu restart server.";
   }
 

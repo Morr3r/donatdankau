@@ -1,6 +1,4 @@
-import type { Prisma } from "@prisma/client";
-
-import { prisma } from "@/lib/db";
+import { prisma, type TxClient } from "@/lib/db";
 
 const DEFAULT_LOCATION_CODE = "CABANG-UTAMA";
 const DEFAULT_LOCATION_NAME = "Toko Donat Dankau";
@@ -23,7 +21,7 @@ export async function getOrCreateDefaultLocation() {
   });
 }
 
-export async function getOrCreateDefaultLocationInTx(tx: Prisma.TransactionClient) {
+export async function getOrCreateDefaultLocationInTx(tx: TxClient) {
   return tx.location.upsert({
     where: { code: DEFAULT_LOCATION_CODE },
     update: {
