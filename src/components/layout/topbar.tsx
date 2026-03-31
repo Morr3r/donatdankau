@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, ChevronDown, Clock3, LogOut, ShieldCheck, Sparkles, UserCircle2 } from "lucide-react";
+import { CalendarDays, ChevronDown, Clock3, LogOut, ShieldCheck, UserCircle2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { logoutAction } from "@/lib/actions/auth";
@@ -140,7 +140,6 @@ export function Topbar({
         <div className="mx-auto flex min-h-[72px] w-full max-w-[1740px] flex-wrap items-center justify-between gap-3 px-3 py-3 sm:min-h-[82px] sm:gap-4 sm:px-6 lg:flex-nowrap lg:px-8">
           <div className="min-w-0">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#ebc999] bg-[#fff1dc] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a6043]">
-              <Sparkles size={12} className="text-[#e58fb4]" />
               Donat Dankau
             </div>
             <h2 className="mt-2 truncate text-xl font-semibold tracking-[-0.04em] text-[#3f2418] sm:mt-3 sm:text-2xl md:text-[1.75rem]">

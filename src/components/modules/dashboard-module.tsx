@@ -4,7 +4,6 @@ import {
   ArrowUpCircle,
   ClipboardList,
   PackageSearch,
-  Sparkles,
 } from "lucide-react";
 
 import { DashboardDateRangePicker } from "@/components/modules/dashboard-date-range-picker";
@@ -161,7 +160,6 @@ export async function DashboardModule({ searchParams }: { searchParams?: Dashboa
 
           <div className="rounded-[20px] border border-[#ecd0ab] bg-[#fff6e9] p-4 text-sm text-[#4b2f1f]">
             <div className="flex items-center gap-2">
-              <Sparkles size={14} className="text-[#e99cbf]" />
               <p className="font-semibold text-[#4b2f1f]">Opname terakhir</p>
             </div>
             {data.latestOpname ? (

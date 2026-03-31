@@ -196,7 +196,7 @@ export function RegisterForm({ action }: RegisterFormProps) {
               value={values.password}
               onChange={(event) => handleFieldChange("password", event.target.value)}
               onBlur={() => handleFieldBlur("password")}
-              placeholder="Min. 6 karakter"
+              placeholder="Buat Password"
               autoComplete="new-password"
               aria-invalid={Boolean(touched.password && errors.password)}
               className="h-12 w-full rounded-xl border border-[#d8b88b] bg-[#fff9f0] px-4 pr-12 text-sm text-[#472b1c] shadow-[0_6px_14px_-12px_rgba(71,43,28,0.5)] outline-none transition placeholder:text-[#9e7757] focus:border-[#d89f48] focus:bg-white focus:ring-2 focus:ring-[#f3d39c]"

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import { CgProfile } from "react-icons/cg";
 
 import { LoginForm } from "@/components/auth/login-form";
@@ -61,7 +61,6 @@ export default async function LoginPage({
           <div className="mb-7">
             <div className="flex items-start justify-between gap-4">
               <p className="inline-flex items-center gap-2 rounded-full border border-[#e8c490] bg-[#ffefd5] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8f6045]">
-                <Sparkles size={12} className="text-[#e99cbf]" />
                 Admin Login
               </p>
               <div className="hidden h-14 w-14 items-center justify-center rounded-3xl bg-[linear-gradient(135deg,#f4c45e,#e99cbf)] text-[#4b2f1f] shadow-[0_14px_28px_-20px_rgba(133,75,28,0.55)] sm:flex">

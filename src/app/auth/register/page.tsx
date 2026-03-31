@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, ShieldPlus, Sparkles } from "lucide-react";
+import { ArrowLeft, ShieldPlus } from "lucide-react";
 
 import { RegisterForm } from "@/components/auth/register-form";
 import { registerAction } from "@/lib/actions/auth";
@@ -61,7 +61,6 @@ export default async function RegisterPage({
           <div className="mb-7 flex items-start justify-between gap-4">
             <div>
               <p className="inline-flex items-center gap-2 rounded-full border border-[#e8c490] bg-[#ffefd5] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8f6045]">
-                <Sparkles size={12} className="text-[#e58fb4]" />
                 Registrasi Admin
               </p>
               <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-[#402518] sm:text-4xl">Buat akun baru</h2>

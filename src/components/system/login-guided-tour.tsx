@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Navigation, Sparkles, Target } from "lucide-react";
+import { Navigation, Target } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -985,7 +985,6 @@ export function LoginGuidedTour() {
                 </Button>
               </div>
               <p className="inline-flex items-center gap-2 text-center text-xs font-semibold uppercase tracking-[0.14em] text-[#8a6345]">
-                <Sparkles size={14} />
                 {currentStep.completion === "route"
                   ? "Klik Lanjut Untuk Pindah Halaman"
                   : requiresManualAdvance
