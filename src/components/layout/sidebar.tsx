@@ -29,6 +29,15 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:52px_52px] opacity-25" />
       </div>
 
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={collapsed ? "Buka sidebar" : "Tutup sidebar"}
+        className="absolute right-2 top-2 z-20 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/18 bg-white/10 text-[#f9dec2] backdrop-blur-sm transition duration-200 hover:border-[#f0c57f]/65 hover:bg-white/16 hover:text-[#ffd8a7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f0c57f]"
+      >
+        {collapsed ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
+      </button>
+
       <div className={cn("relative flex h-full flex-col", collapsed && "items-center")}>
         <div
           className={cn(
@@ -36,37 +45,23 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             collapsed ? "rounded-2xl p-3" : "rounded-[24px] p-5",
           )}
         >
-          <div className={cn("flex", collapsed ? "flex-col items-center gap-2" : "items-start justify-between gap-3")}>
-            <div className={cn("flex items-center", collapsed ? "order-2 justify-center" : "order-1 gap-4")}>
-              <div className={cn("relative shrink-0 transition-[height,width] duration-300", collapsed ? "h-14 w-14" : "h-20 w-20")}>
-                <Image
-                  src="/logo.png"
-                  alt="Logo Donat Dankau"
-                  fill
-                  sizes={collapsed ? "56px" : "80px"}
-                  className="object-contain"
-                  priority
-                />
-              </div>
-              {!collapsed ? (
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-[#f6dcc0]/80">Donat Dankau</p>
-                  <h1 className="mt-1 text-xl font-semibold leading-tight text-white">Stock Opname</h1>
-                </div>
-              ) : null}
+          <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-4")}>
+            <div className={cn("relative shrink-0 transition-[height,width] duration-300", collapsed ? "h-14 w-14" : "h-20 w-20")}>
+              <Image
+                src="/logo.png"
+                alt="Logo Donat Dankau"
+                fill
+                sizes={collapsed ? "56px" : "80px"}
+                className="object-contain"
+                priority
+              />
             </div>
-
-            <button
-              type="button"
-              onClick={onToggle}
-              aria-label={collapsed ? "Buka sidebar" : "Tutup sidebar"}
-              className={cn(
-                "inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/18 bg-[linear-gradient(145deg,rgba(255,255,255,0.2),rgba(255,255,255,0.08))] text-[#f9dec2] shadow-[inset_0_1px_0_rgba(255,255,255,0.24)] backdrop-blur-sm transition duration-200 hover:border-[#f0c57f]/70 hover:text-[#ffd8a7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f0c57f]",
-                collapsed ? "order-1" : "order-2 mt-0.5",
-              )}
-            >
-              {collapsed ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
-            </button>
+            {!collapsed ? (
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.24em] text-[#f6dcc0]/80">Donat Dankau</p>
+                <h1 className="mt-1 text-xl font-semibold leading-tight text-white">Stock Opname</h1>
+              </div>
+            ) : null}
           </div>
 
           {!collapsed ? (
